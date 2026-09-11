@@ -1,4 +1,8 @@
 # Xolobot Cognitive Core
+> **⚠️ Prerrequisito del Sistema (Tier 1)**
+> Este proyecto está diseñado para ejecutarse en **Ubuntu Linux - Noble (24.04) 64-bit**. 
+> Antes de proceder con la instalación del workspace, es obligatorio tener **ROS 2 Jazzy Jalisco** instalado en tu equipo. Las instrucciones oficiales de instalación no se incluyen en este documento, pero puedes seguirlas desde el sitio oficial de ROS:
+> 🔗 [Ubuntu Development Setup - ROS 2 Jazzy](https://docs.ros.org/en/jazzy/Installation/Alternatives/Ubuntu-Development-Setup.html)
 
 Repositorio principal del programa **Apoyo para implementar la Arquitectura Cognitiva Inspirada en Neuronas Espejo**. Contiene la migración y modernización del entorno de simulación del manipulador antropomórfico Xolobot hacia **ROS 2 Jazzy Jalisco** y **Gazebo Harmonic**.
 
