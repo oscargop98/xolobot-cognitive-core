@@ -1,126 +1,126 @@
 # Xolobot Cognitive Core
 
-Repositorio principal del programa **Apoyo para implementar la Arquitectura Cognitiva Inspirada en Neuronas Espejo**. Este proyecto contiene la migración y modernización del entorno de simulación del manipulador antropomórfico Xolobot hacia **ROS 2 Jazzy Jalisco** y **Gazebo Harmonic**.
+Repositorio principal del programa **Apoyo para implementar la Arquitectura Cognitiva Inspirada en Neuronas Espejo**. Contiene la migración y modernización del entorno de simulación del manipulador antropomórfico Xolobot hacia **ROS 2 Jazzy Jalisco** y **Gazebo Harmonic**.
 
-Incluye la implementación de la Corteza Premotora (nodo `SimulationController`), Corteza Motora Primaria (`JointTrajectoryController`) y Cortezas Somatosensorial/Parietal (sensores táctiles).
-
-## Requisitos Previos
-El proyecto está diseñado para ejecutarse de dos maneras, dependiendo de la configuración de tu equipo.
-
----
-
-## Opción A: Ejecución Nativa (Requiere Ubuntu 24.04 y ROS 2 Jazzy)
-
-El proyecto incluye un set de comandos especiales (alias) diseñados por Oscar Gonzalez para operar y depurar la simulación rápidamente. 
-
-### Panel de Control (Comandos Disponibles):
-* `xolo_sim`: Compila el servidor y lanza el entorno físico de Gazebo (Corteza Motora).
-* `xolo_brain`: Lanza el cerebro/controlador lógico (Corteza Premotora).
-* `xolo_kill`: 💀 Botón de pánico. Aniquila todos los procesos de ROS 2 y Gazebo.
-* `xolo_cam`: Muestra las coordenadas actuales de la cámara.
-* `xolo_view`: Mueve la cámara automáticamente a la pose ideal de observación.
-* `xolo_jtc`: Abre el Teach Pendant (`rqt_joint_trajectory_controller`) para calibración manual.
-* `xolo_kill_jtc`: Cierra el controlador manual.
-* `xolo_float`: Depura la lata flotante publicando en el tópico magnet_off.
-
-### Flujo de ejecución nativa:
-1. Asegúrate de tener los alias inyectados en tu `~/.bashrc`.
-2. En la Terminal 1, ejecuta: `xolo_sim`
-3. En la Terminal 2, ejecuta: `xolo_brain`
+Incluye la implementación de los módulos cognitivos del robot simulado:
+- **Corteza Premotora** — nodo `SimulationController` en C++
+- **Corteza Motora Primaria** — `JointTrajectoryController` vía `ros2_control`
+- **Cortezas Somatosensorial y Parietal** — 7 sensores de contacto (bumpers) en Gazebo
 
 ---
 
-## Opción B: Ejecución con Docker (Para cualquier otro equipo)
+## 🛠️ Instalación desde cero y Resolución de Problemas
 
-Si tu equipo no cuenta con ROS 2 Jazzy, puedes levantar la arquitectura completa utilizando contenedores. Esto garantiza que el cerebro y el simulador coexistan en el mismo espacio de red e IPC.
+Sigue estos pasos si es la primera vez que configuras el workspace, o si necesitas limpiar una compilación rota.
 
-1. Construir y levantar el entorno cognitivo completo:
-   ```bash
-   docker compose up --build
+### 1. Clonar el repositorio dentro del workspace de ROS 2
 
-
----
-# Brazo robótico antropomórfico 🦾
-## src
-Carpeta principal de este repositorio.
-## Configurar .bash
-```
-# --- Configuración de ROS 2 y Gazebo ---
-source /opt/ros/iron/setup.bash
-source ~/ros2_ws/install/setup.bash
-export PATH=${PATH}:${HOME}/bin
-
-# Rutas de Plugins y Modelos de Gazebo
-export GAZEBO_PLUGIN_PATH=/opt/ros/iron/lib:$GAZEBO_PLUGIN_PATH
-export GAZEBO_MODEL_PATH=/home/oscarss2/ros2_ws/src/xolobot_arm/models:$HOME/.gazebo/models:$GAZEBO_MODEL_PATH # Cambiar oscarss2 si es necesario por el usuario que lo ejecute
-
+```bash
+mkdir -p ~/migration_ws/src
+cd ~/migration_ws/src
+git clone https://github.com/oscargop98/xolobot-cognitive-core.git
 ```
 
----
-# INICAR EL PROYECTO
+### 2. Inyectar el entorno de ROS 2 Jazzy
 
-## TERMINAL 1 - PROYECTO CON LAUNCH
+```bash
+source /opt/ros/jazzy/setup.bash
 ```
-cd ~/ros2_ws/
+
+> **Importante:** Nunca sources ROS 2 Iron antes de Jazzy en la misma sesión. Si lo hiciste, abre una terminal nueva antes de continuar.
+
+### 3. Limpiar caché de compilaciones anteriores (si aplica)
+
+Si estás resolviendo un build roto o migraste de una ruta de workspace anterior, elimina los directorios generados antes de recompilar:
+
+```bash
+cd ~/migration_ws
+rm -rf build/ install/ log/
+```
+
+### 4. Instalar dependencias y compilar
+
+```bash
+cd ~/migration_ws
+rosdep install --from-paths src --ignore-src -r -y
 colcon build
-source install/setup.bash
-ros2 launch xolobot_arm xolobot_arm_control.launch.py # Inicia la simulación. Este comando mantendrá esta terminal ocupada
-```
-## TERMINAL 2 - EL SERIVIDOR
-```
-cd ~/ros2_ws/
-colcon build
-source install/setup.bash
-ros2 run xolobot_arm_server xolobot_arm_server # Como la simulación ya está corriendo, el controller_manager estará activo y te responderá
 ```
 
-## Paso 3
-```
-cd ~/ros2_ws/
-colcon build
-source install/setup.bash
-ros2 control list_controllers
-```
-## Nuevos comandos
-```
-ros2 control list_controllers
+### 5. Activar el workspace compilado
 
-ros2 pkg list | grep ros2_control
-    #gazebo_ros2_control
-    #ros2_control
-    #ros2_control_test_assets
-    #ros2_controllers'' 
-ros2 pkg list | grep libgazebo_ros2_control.so 
-
-ros2 pkg list | grep joint_trajectory_controller
-    # joint_trajectory_controller
-
-# Matar los procesos
-pkill -9 gzserver
-pkill -9 gzclient
-pkill -9 gazebo
+```bash
+source ~/migration_ws/install/setup.bash
 ```
+
+### 6. (Opcional) Inyectar los alias de desarrollo en tu shell
+
+```bash
+bash ~/migration_ws/src/xolobot-cognitive-core/setup_aliases.sh
+source ~/.bashrc
+```
+
 ---
-## Comandos Anteriores
-### Para lanzar el mundo - ejecutar 
-1. colcon build
-2. source install/setup.bash
-3. ros2 launch xolobot_arm xolobot_arm_control.launch.py
-4. ros2 run xolobot_arm_server xolobot_arm_server
 
-### Para escuchar tópicos
-1. ros2 topic echo /bumper_states
+## 🚀 Ejecución del Proyecto
 
-### Para ver los controladores disponibles
-1. ros2 control list_controllers
+### Opción A: Ejecución Nativa
 
-### Para matar procesos
-1. pkill -9 gzserver
-2. pkill -9 gzclient
-3. pkill -9 gazebo
+Requiere **Ubuntu 24.04** y **ROS 2 Jazzy Jalisco** instalados en el host.
 
-### Paquete de Python
-ros2 pkg create --build-type ament_python --license Apache-2.0 modulos
+El proyecto incluye un panel de alias diseñados para operar y depurar la simulación rápidamente desde la terminal.
 
-## src_lata
-Esta es una carpeta que puede servir de prueba. Tiene el proyecto del brazo robótico antropomórfico que carga la lata y simula el agarre.
+#### Panel de Control — Alias disponibles
+
+| Alias | Función |
+|---|---|
+| `xolo_sim` | Compila el servidor y lanza Gazebo Harmonic (Corteza Motora) |
+| `xolo_brain` | Lanza el nodo de control autónomo (Corteza Premotora) |
+| `xolo_kill` | Termina todos los procesos de ROS 2 y Gazebo |
+| `xolo_cam` | Muestra las coordenadas actuales de la cámara en Gazebo |
+| `xolo_view` | Mueve la cámara a la pose ideal de observación del agarre |
+| `xolo_jtc` | Abre el Teach Pendant (`rqt_joint_trajectory_controller`) para calibración manual |
+| `xolo_kill_jtc` | Cierra el controlador manual |
+| `xolo_float` | Depura la lata flotante publicando en el tópico `magnet_off` |
+
+#### Flujo de ejecución
+
+```bash
+# Terminal 1 — Simulador físico + JointTrajectoryController
+xolo_sim
+
+# Terminal 2 — Nodo cognitivo (espera ~15s de warm-up antes de enviar trayectorias)
+xolo_brain
+```
+
+> Si necesitas matar todos los procesos en cualquier momento: `xolo_kill`
+
+---
+
+### Opción B: Ejecución con Docker
+
+Para cualquier equipo que no cuente con ROS 2 Jazzy instalado nativamente. Los contenedores `sim` y `brain` comparten red e IPC para garantizar la comunicación entre el simulador y el nodo cognitivo.
+
+#### Prerrequisito: habilitar el forwarding gráfico (una vez por sesión)
+
+```bash
+xhost +local:docker
+```
+
+#### Construir la imagen y levantar el entorno completo
+
+```bash
+cd ~/migration_ws/src/xolobot-cognitive-core
+docker compose up --build
+```
+
+La imagen se construye en ~10–15 minutos la primera vez. Las ejecuciones posteriores son instantáneas (el workspace ya está pre-compilado en la imagen).
+
+#### Arranque manual con dos terminales separadas
+
+```bash
+# Terminal 1 — Gazebo + controladores
+docker compose up sim
+
+# Terminal 2 — Nodo cognitivo
+docker compose run brain
+```
