@@ -14,6 +14,14 @@ Incluye la implementación de los módulos cognitivos del robot simulado:
 
 ---
 
+## 📚 Documentación de Referencia y Bitácoras
+
+Durante el desarrollo y migración de este proyecto, se documentó el proceso de investigación y configuración de forma paralela. Estos documentos sirven para entender el contexto histórico de la migración y las decisiones técnicas adoptadas:
+
+* 📝 **[Bitácora Raíz y Borradores del Proyecto](https://app.notion.com/p/Servicio-Social-ROS-2-2390a9b6c48c8071a7b2f5323f16512e)**: Notas de partida, planeación y estructuración inicial del Servicio Social.
+* ⚙️ **[Configuración de Entorno y `.bashrc` (ROS 2 Jazzy)](https://app.notion.com/p/Archivo-bashrc-ROS-2-Jazzi-Jalisco-3680a9b6c48c808f9b66f4022fd2933b)**: Documentación detallada con resultados precisos sobre la inyección de comandos, creación de alias y despliegue del entorno nativo.
+---
+
 ## 🛠️ Instalación desde cero y Resolución de Problemas
 
 Sigue estos pasos si es la primera vez que configuras el workspace, o si necesitas limpiar una compilación rota.
