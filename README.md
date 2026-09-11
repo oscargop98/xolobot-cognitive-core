@@ -1,3 +1,45 @@
+# Xolobot Cognitive Core
+
+Repositorio principal del programa **Apoyo para implementar la Arquitectura Cognitiva Inspirada en Neuronas Espejo**. Este proyecto contiene la migración y modernización del entorno de simulación del manipulador antropomórfico Xolobot hacia **ROS 2 Jazzy Jalisco** y **Gazebo Harmonic**.
+
+Incluye la implementación de la Corteza Premotora (nodo `SimulationController`), Corteza Motora Primaria (`JointTrajectoryController`) y Cortezas Somatosensorial/Parietal (sensores táctiles).
+
+## Requisitos Previos
+El proyecto está diseñado para ejecutarse de dos maneras, dependiendo de la configuración de tu equipo.
+
+---
+
+## Opción A: Ejecución Nativa (Requiere Ubuntu 24.04 y ROS 2 Jazzy)
+
+El proyecto incluye un set de comandos especiales (alias) diseñados por Oscar Gonzalez para operar y depurar la simulación rápidamente. 
+
+### Panel de Control (Comandos Disponibles):
+* `xolo_sim`: Compila el servidor y lanza el entorno físico de Gazebo (Corteza Motora).
+* `xolo_brain`: Lanza el cerebro/controlador lógico (Corteza Premotora).
+* `xolo_kill`: 💀 Botón de pánico. Aniquila todos los procesos de ROS 2 y Gazebo.
+* `xolo_cam`: Muestra las coordenadas actuales de la cámara.
+* `xolo_view`: Mueve la cámara automáticamente a la pose ideal de observación.
+* `xolo_jtc`: Abre el Teach Pendant (`rqt_joint_trajectory_controller`) para calibración manual.
+* `xolo_kill_jtc`: Cierra el controlador manual.
+* `xolo_float`: Depura la lata flotante publicando en el tópico magnet_off.
+
+### Flujo de ejecución nativa:
+1. Asegúrate de tener los alias inyectados en tu `~/.bashrc`.
+2. En la Terminal 1, ejecuta: `xolo_sim`
+3. En la Terminal 2, ejecuta: `xolo_brain`
+
+---
+
+## Opción B: Ejecución con Docker (Para cualquier otro equipo)
+
+Si tu equipo no cuenta con ROS 2 Jazzy, puedes levantar la arquitectura completa utilizando contenedores. Esto garantiza que el cerebro y el simulador coexistan en el mismo espacio de red e IPC.
+
+1. Construir y levantar el entorno cognitivo completo:
+   ```bash
+   docker compose up --build
+
+
+---
 # Brazo robótico antropomórfico 🦾
 ## src
 Carpeta principal de este repositorio.
