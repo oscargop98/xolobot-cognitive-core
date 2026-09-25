@@ -60,7 +60,7 @@ El objetivo es implementar una arquitectura cognitiva inspirada en neuronas espe
 
 ```
 Gazebo Harmonic (gz-sim8)
-  ↓  ros_gz_bridge  [config/bridge.yaml]
+  ↓  ros_gz_bridge  [nodo `bridge` inline en xolobot_arm_control.launch.py]
 /clock                          → SimulationController (sincronización temporal)
 /bumper_states_palma            ↘
 /bumper_states_pulgar_3          → SimulationController: detección de contacto
@@ -70,7 +70,7 @@ Gazebo Harmonic (gz-sim8)
 SimulationController.cpp  [xolobot_arm_server/src/]
   ↓  publica
 /joint_trajectory_controller/joint_trajectory  →  JTC  →  Gazebo (mueve 21 joints)
-gz topic /xolobot_arm/magnet_on|off            →  DetachableJoint plugin
+/xolobot_arm/attach (std_msgs/Empty)           →  bridge  →  DetachableJoint plugin (DESACTIVADO, ver "Bugs ya resueltos")
 ```
 
 ### Nodo de control: `SimulationController.cpp`
@@ -82,7 +82,7 @@ Máquina de estados:
 2. **Planificación** — genera trayectoria de 2 puntos: waypoint alto (t=2.5s) + pose final (t=5s)
 3. **Ejecución** — JTC interpola las 21 articulaciones
 4. **Contacto** — bumper detecta colisión palma/dedo con el objeto
-5. **Agarre** — cierra dedos + activa imán vía `gz topic`
+5. **Agarre** — cierra dedos + publica `attach_pub_` → `/xolobot_arm/attach` (actualmente sin efecto real: el plugin `DetachableJoint` está desactivado, ver "Bugs ya resueltos")
 6. **Elevación** — `moverHombro()` publica trayectoria de elevación suave (5s)
 
 Flags estáticos importantes:
@@ -115,12 +115,19 @@ El proyecto usa **Gazebo Harmonic (gz-sim8)**. Comandos de Gazebo Classic (`gzse
 
 ### Bridge de comunicación
 
-`src/xolobot_arm/config/bridge.yaml` — mapea rutas largas de Gazebo Harmonic:
+**No existe un `bridge.yaml`.** El bridge (`ros_gz_bridge`/`parameter_bridge`) está definido inline como el nodo `bridge` dentro de `src/xolobot_arm/launch/xolobot_arm_control.launch.py`. Bridgea, con el mismo nombre a ambos lados (Gazebo ↔ ROS 2):
 ```
-/world/default/model/xolobot_arm/link/link_palma_izq/sensor/palma_sensor/contact
-→  /bumper_states_palma  (ros_gz_interfaces/msg/Contacts)
+/clock                     @ rosgraph_msgs/msg/Clock
+/bumper_states_palma       @ ros_gz_interfaces/msg/Contacts
+/bumper_states_antebrazo   @ ros_gz_interfaces/msg/Contacts
+/bumper_states_pulgar_3    @ ros_gz_interfaces/msg/Contacts
+/bumper_states_indice_3    @ ros_gz_interfaces/msg/Contacts
+/bumper_states_cordial_3   @ ros_gz_interfaces/msg/Contacts
+/bumper_states_anular_3    @ ros_gz_interfaces/msg/Contacts
+/bumper_states_menique_3   @ ros_gz_interfaces/msg/Contacts
+/xolobot_arm/attach        @ std_msgs/msg/Empty  (ROS → Gazebo, unidireccional)
 ```
-Debe incluir siempre `/clock` como primer entry para sincronización temporal.
+`/clock` debe ir siempre como primera entrada para sincronización temporal.
 
 ### Articulaciones (21 DOF)
 
@@ -143,23 +150,33 @@ Debe incluir siempre `/clock` como primer entry para sincronización temporal.
 | Área | Iron / Gazebo Classic | Jazzy / Gazebo Harmonic |
 |---|---|---|
 | Plugins SDF | `libgazebo_ros_control.so` | Plugins nativos `gz::sim::systems::*` |
-| Bridge | Auto-discovery | YAML explícito obligatorio (`bridge.yaml`) |
+| Bridge | Auto-discovery | `parameter_bridge` explícito, definido inline en `xolobot_arm_control.launch.py` (no hay `bridge.yaml`) |
 | Rutas de tópicos | Cortas (`/bumper_states`) | Largas (`/world/.../contact`) |
-| DetachableJoint | Acoplado por defecto | Arranca acoplado — hay que enviar `magnet_off` en el constructor |
+| DetachableJoint | Acoplado por defecto | Plugin comentado/desactivado en el SDF — el agarre magnético no está realmente activo, ver "Bugs ya resueltos" |
 | JTC timestamps | Permisivo | Rechaza `stamp=0` y cualquier timestamp en el pasado |
 | JTC payload | Acepta `velocities` vacío | **Requiere** `velocities` y `accelerations` del mismo tamaño que `positions` |
 
 ### Bugs ya resueltos — no reabrir
 
-- **Phantom Empty del bridge:** el bridge enviaba `Empty` en init para los tópicos del imán. Solución: bypass completo del bridge con `system("gz topic ...")` desde C++.
+- **Phantom Empty del bridge → plugin `DetachableJoint` desactivado:** al iniciar, el bridge disparaba un `Empty` fantasma en `/xolobot_arm/attach` que provocaba un acople/desacople falso en t=0. **Solución realmente aplicada:** el bloque completo `<plugin name="gz::sim::systems::DetachableJoint">` quedó **comentado** en `src/xolobot_arm/models/xolobot_arm.sdf` (no se carga en Gazebo). El nodo C++ conserva únicamente `attach_pub_` (publica `Empty` en `/xolobot_arm/attach`, bridgeado en el `launch.py`); no existe ningún tópico `detach`/`magnet_off` ni ninguna llamada `system("gz topic ...")` en el código actual. **Reactivar el plugin (SDF + bridge) sigue pendiente — no está resuelto, solo desactivado.**
 - **Constructor bloqueante:** `sleep_for()` en el constructor bloqueaba `spin()` y `/clock` nunca llegaba. Solución: `create_wall_timer` con lambda de un solo disparo.
 - **Antebrazo en filtro de colisión:** el filtro incluía `link_antebrazo_izq` que generaba falsos positivos. Solución: filtro estricto — solo palma y las 5 yemas de los dedos.
 - **Arc interpolation + pedestal:** JTC interpola en curva cúbica causando que el antebrazo choque con el pedestal. Solución definitiva: trayectoria de 2 puntos (waypoint alto en t=2.5s, descenso en t=5.0s).
 
-### Paquetes del sistema requeridos (apt)
+### Instalación de Jazzy — apt obligatorio (NO compilar desde fuente)
+
+**ROS 2 Jazzy debe instalarse exclusivamente vía apt.** Nunca compilar el core de ROS 2 desde fuente en una máquina donde vaya a correr este proyecto.
+
+> **🛑 Conflicto letal ya observado en este proyecto:** en la migración de esta máquina (sesión 2026-09-24/25) se encontró un ROS 2 Jazzy compilado desde fuente en `~/ros2_jazzy/install/`, sourceado globalmente en `~/.bashrc`. Este proyecto necesita `ros_gz_interfaces`/`ros_gz_bridge`/`gz_ros2_control`, que solo existen como paquetes apt (`ros-jazzy-*`). Instalarlos sin más habría creado **dos `rclcpp` distintos y binariamente incompatibles** conviviendo en la misma máquina (uno compilado a mano en `~/ros2_jazzy`, otro de apt en `/opt/ros/jazzy`). Si ambos llegan a sourcearse — aunque sea en contextos distintos, uno en `.bashrc` global y otro dentro de un alias — el resultado es compilar contra un `rclcpp` y ejecutar contra otro: símbolos indefinidos, `ros2` roto, builds que fallan de forma intermitente y difícil de diagnosticar. **Esta es, con alta probabilidad, la causa real de las rupturas de entorno reportadas en intentos previos de instalación de este proyecto — no el mecanismo de inyección de alias en sí.**
+>
+> **Solución aplicada:** se instaló el stack completo vía apt (`ros-jazzy-desktop` + paquetes de Gazebo/control de abajo), se dejó de sourcear `~/ros2_jazzy` en `.bashrc` (reemplazado por `/opt/ros/jazzy/setup.bash`, con guarda `[ -f ... ]`), y se recompiló el workspace desde cero contra el apt de Jazzy. `~/ros2_jazzy` se dejó en disco sin usarse (huérfano, inofensivo) en vez de borrarlo.
+>
+> **Regla para el futuro:** si esta máquina (o cualquier clon nuevo) tiene un ROS 2 compilado desde fuente, **no lo actives globalmente**. Instala todo el stack de este proyecto vía apt; si necesitas conservar el build desde fuente para otro propósito, mantenlo completamente aislado — nunca sourceado en la misma shell donde se compila o ejecuta este workspace.
 
 ```bash
-sudo apt install \
+sudo apt update
+sudo apt install -y \
+  ros-jazzy-desktop \
   ros-jazzy-ros2-control \
   ros-jazzy-ros2-controllers \
   ros-jazzy-gz-ros2-control \
