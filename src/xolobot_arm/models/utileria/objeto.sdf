@@ -6,22 +6,23 @@
 
     <link name='link'>
       <inertial>
-        <mass>2.0</mass>
+        <mass>0.4</mass>
         <inertia>
-          <ixx>0.01</ixx>
+          <ixx>0.000577</ixx>
           <ixy>0</ixy>
           <ixz>0</ixz>
-          <iyy>0.01</iyy>
+          <iyy>0.000577</iyy>
           <iyz>0</iyz>
-          <izz>0.01</izz>
+          <izz>0.000218</izz>
         </inertia>
       </inertial>
 
       <collision name='collision'>
         <geometry>
-          <box>
-            <size>0.05 0.05 0.12</size>
-          </box>
+          <cylinder>
+            <radius>0.033</radius>
+            <length>0.122</length>
+          </cylinder>
         </geometry>
         <surface>
           <friction>
@@ -35,9 +36,10 @@
 
       <visual name='visual'>
         <geometry>
-          <box>
-            <size>0.05 0.05 0.12</size>
-          </box>
+          <cylinder>
+            <radius>0.033</radius>
+            <length>0.122</length>
+          </cylinder>
         </geometry>
         <material>
           <ambient>1 0 0 1</ambient>
