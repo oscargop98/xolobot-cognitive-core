@@ -5,7 +5,7 @@
 > Antes de proceder con la instalación del workspace, es obligatorio tener **ROS 2 Jazzy Jalisco instalado estrictamente vía apt** (`sudo apt install ros-jazzy-desktop`), siguiendo las instrucciones oficiales:
 > 🔗 [Ubuntu Development Setup - ROS 2 Jazzy](https://docs.ros.org/en/jazzy/Installation/Alternatives/Ubuntu-Development-Setup.html)
 >
-> **🛑 NO compiles ROS 2 desde código fuente en esta máquina.** Un ROS 2 Jazzy compilado desde fuente conviviendo con el paquete `ros-jazzy-desktop` de apt produce dos instalaciones con `rclcpp` binariamente incompatibles entre sí. Si ambas llegan a sourcearse en algún momento (aunque sea en contextos distintos), el resultado son builds que enlazan contra una y corren contra otra — símbolos indefinidos, `ros2` roto, fallos intermitentes difíciles de diagnosticar. Esto ya causó una ruptura de entorno real en este proyecto; ver el detalle en `docs/handover/AI_CONTEXT.md` → "Instalación de Jazzy — apt obligatorio".
+> **🛑 NO compiles ROS 2 desde código fuente en esta máquina.** Un ROS 2 Jazzy compilado desde fuente conviviendo con el paquete `ros-jazzy-desktop` de apt produce dos instalaciones con `rclcpp` binariamente incompatibles entre sí. Si ambas llegan a sourcearse en algún momento (aunque sea en contextos distintos), el resultado son builds que enlazan contra una y corren contra otra — símbolos indefinidos, `ros2` roto, fallos intermitentes difíciles de diagnosticar. Esto ya causó una ruptura de entorno real en este proyecto; ver el detalle en `docs/handover/DEV_CONTEXT.md` → "Instalación de Jazzy — apt obligatorio".
 
 Repositorio principal del programa **Apoyo para implementar la Arquitectura Cognitiva Inspirada en Neuronas Espejo**. Contiene la migración y modernización del entorno de simulación del manipulador antropomórfico Xolobot hacia **ROS 2 Jazzy Jalisco** y **Gazebo Harmonic**.
 
@@ -22,6 +22,68 @@ Durante el desarrollo y migración de este proyecto, se documentó el proceso de
 
 * 📝 **[Bitácora Raíz y Borradores del Proyecto](https://app.notion.com/p/Servicio-Social-ROS-2-2390a9b6c48c8071a7b2f5323f16512e)**: Notas de partida, planeación y estructuración inicial del Servicio Social.
 * ⚙️ **[Configuración de Entorno y `.bashrc` (ROS 2 Jazzy)](https://app.notion.com/p/Archivo-bashrc-ROS-2-Jazzi-Jalisco-3680a9b6c48c808f9b66f4022fd2933b)**: Documentación detallada con resultados precisos sobre la inyección de comandos, creación de alias y despliegue del entorno nativo.
+---
+
+## 🧠 Guía para entender el código
+
+Esta sección es para quien quiera estudiar, modificar o extender el sistema — no solo ejecutarlo. El proyecto tiene tres paquetes ROS 2, cada uno con una responsabilidad distinta.
+
+### Los tres paquetes y qué hace cada uno
+
+| Paquete | Tipo | Qué contiene |
+|---|---|---|
+| `xolobot_arm` | Recursos | Modelo SDF del robot y la escena (`.sdf`), archivo de lanzamiento principal (`.launch.py`), configuración del bridge Gazebo↔ROS 2 (`bridge.yaml`) |
+| `xolobot_arm_server` | Nodo C++ | Toda la lógica cognitiva: trayectorias, detección de colisión, agarre. **Aquí vive la inteligencia del robot.** |
+| `xolobot_control` | Configuración | Parámetros del `JointTrajectoryController` en YAML — tolerancias, nombres de joints, tipo de controlador |
+
+### Dónde está cada módulo cognitivo
+
+Si quieres modificar un módulo específico de la arquitectura, este es el archivo donde buscar:
+
+| Módulo cognitivo | Archivo | Qué modificar |
+|---|---|---|
+| **Corteza Premotora** — planificación y trayectorias | `xolobot_arm_server/src/SimulationController.cpp` | Función `generaAleatorios()`: define los puntos de la trayectoria, los tiempos y la secuencia de aproximación |
+| **Corteza Motora Primaria** — ejecución articular | `xolobot_control/config/xolobot_control.yaml` | Tolerancias del JTC, frecuencia de muestreo, nombres de joints |
+| **Cortezas Somatosensorial y Parietal** — tacto | `xolobot_arm/config/bridge.yaml` | Mapeo de sensores Gazebo→ROS 2; agregar un nuevo bumper significa agregar un bloque aquí |
+| **Memoria Procedural** — plan motor almacenado | `xolobot_arm_server/src/SimulationController.cpp` | Función `moverHombro()`: define la pose de elevación post-agarre |
+| **Modelo físico del robot** | `xolobot_arm/models/xolobot_arm/xolobot_arm.sdf` | Geometría, masa, joints, colisiones y plugins del simulador |
+| **Escena y objetos** | `xolobot_arm/models/` (`soporte.sdf`, `objeto.sdf`) | Posición de la mesa y la lata; modificar coordenadas X/Y aquí si cambias la pose objetivo |
+
+### Flujo de datos (de lo más simple a lo más complejo)
+
+```
+[Gazebo Harmonic]
+   → publica contacto en /world/.../sensor/.../contact
+   → ros_gz_bridge lo traduce a /bumper_states_*   ← bridge.yaml define este mapeo
+   → SimulationController.cpp lo recibe como Subscriber
+
+[SimulationController]  ← este es el nodo "cerebro"
+   → genera JointTrajectory con 21 posiciones articulares
+   → lo publica en /joint_trajectory_controller/joint_trajectory
+
+[JointTrajectoryController]  ← dentro de Gazebo, vía ros2_control
+   → interpola la trayectoria y mueve el robot articulación por articulación
+```
+
+### Reglas que no deben romperse al modificar el código
+
+1. **Siempre usa `this->now()` para el timestamp de la trayectoria**, nunca `rclcpp::Time(0)`. El JTC rechaza silenciosamente cualquier trayectoria con timestamp en el pasado.
+2. **Usa `create_timer()`, nunca `create_wall_timer()`**. Los timers deben sincronizarse con el reloj de simulación (`/clock`), no con el reloj del sistema.
+3. **El parámetro `use_sim_time:=true` es obligatorio** en el nodo `xolobot_arm_server`. Sin él, el tiempo de simulación y el del nodo divergen y las trayectorias son rechazadas.
+4. **Los 21 joints deben nombrarse en orden exacto** en cada `JointTrajectory`. Un joint omitido o en distinto orden hace que el controlador aplique el movimiento al joint equivocado.
+
+### Cómo agregar un nuevo comportamiento
+
+El punto de extensión natural es `SimulationController.cpp`. La máquina de estados actual tiene estas fases:
+
+```
+warm-up (15s) → aproximación → contacto detectado → agarre → elevación
+```
+
+Para agregar una nueva fase (por ejemplo, depositar el objeto en otra posición), añade un nuevo timer o estado después de `levantando = true` en `moverHombro()`, y publica una nueva `JointTrajectory` con la pose objetivo.
+
+Para consultar el estado detallado de la arquitectura, los joints calibrados y las decisiones de diseño del sistema, revisa el documento técnico `docs/handover/DEV_CONTEXT.md`.
+
 ---
 
 ## 🛠️ Instalación desde cero y Resolución de Problemas
@@ -109,7 +171,9 @@ source install/setup.bash
 
 ## 💾 Requerimientos de almacenamiento
 
-El stack tecnológico de este proyecto (ROS 2 + Gazebo Harmonic + Docker) tiene un consumo de disco inherentemente alto. Antes de instalar, verifica que tu partición de Linux cuente con al menos **40 GB libres**.
+El stack tecnológico de este proyecto (ROS 2 + Gazebo Harmonic + Docker) tiene un consumo de disco inherentemente alto.
+
+> **Se recomienda asignar al menos 300 GB a la partición de Linux al instalar Ubuntu.** Esta cifra contempla el stack completo de ROS 2 + Gazebo Harmonic, imágenes Docker, caché de compilación activa, logs de ejecución, y margen operativo para el desarrollo sostenido. Una partición de 200 GB puede llenarse al llegar a la fase de pruebas intensivas.
 
 ### Por qué el proyecto ocupa tanto espacio
 
@@ -123,9 +187,8 @@ El stack tecnológico de este proyecto (ROS 2 + Gazebo Harmonic + Docker) tiene 
 
 ### Recomendaciones
 
-- **Mínimo recomendado para instalación nativa:** 40 GB libres en la partición de Linux.
-- **Mínimo recomendado si también usas Docker:** 60 GB libres.
-- Si tienes una partición Windows o NTFS disponible, puedes montarla como volumen auxiliar para almacenar artefactos o backups sin riesgo:
+- **Partición recomendada al instalar Ubuntu:** **300 GB** (nativo + Docker + margen de trabajo).
+- Si ya tienes una instalación con espacio limitado y cuentas con una partición Windows o NTFS disponible, puedes montarla como volumen auxiliar sin riesgo:
   ```bash
   # Verificar UUID de la partición NTFS
   sudo blkid /dev/sdXY
@@ -181,7 +244,7 @@ Diseñada para entornos donde **no es viable o conveniente instalar el stack com
 - **Entornos de integración o despliegue remoto** — donde se necesita reproducibilidad exacta del entorno sin depender de la configuración del host.
 - **Desarrollo paralelo de múltiples versiones** — cada contenedor es un entorno aislado; cambiar de versión es tan simple como cambiar la imagen.
 
-> En equipos de desarrollo dedicados con Ubuntu 24.04 (como los de los integrantes del laboratorio), se recomienda la **Opción A (Nativa)** por su rendimiento superior y acceso directo al hardware gráfico. Docker es el complemento ideal para despliegues en infraestructura compartida o remota.
+> **⚠️ Caso de uso restringido.** La Opción B está pensada exclusivamente para situaciones donde no es posible instalar ROS 2 Jazzy de forma nativa: servidores de laboratorio compartidos, máquinas con Ubuntu 22.04 u otra versión incompatible, o entornos de despliegue remoto. En la práctica, **casi siempre se ejecutará de forma local** sobre el equipo de desarrollo — no es una opción para producción en red ni para correr el simulador en la nube, ya que Gazebo Harmonic requiere acceso a GPU y display local. Para cualquier integrante del laboratorio con Ubuntu 24.04, la **Opción A (Nativa)** es la correcta.
 
 Los contenedores `sim` y `brain` comparten red e IPC para garantizar la comunicación entre el simulador y el nodo cognitivo.
 

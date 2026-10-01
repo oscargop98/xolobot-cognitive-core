@@ -1,5 +1,5 @@
-# AI_CONTEXT.md — Xolobot Cognitive Core
-**Handover técnico para nueva instancia de IA**
+# DEV_CONTEXT.md — Xolobot Cognitive Core
+**Documento técnico de contexto y traspaso del proyecto**
 Última actualización: 2026-09-24
 
 ---
