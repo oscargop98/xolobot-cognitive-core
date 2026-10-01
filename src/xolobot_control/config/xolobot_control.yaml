@@ -34,7 +34,32 @@ joint_trajectory_controller:
       - jnt_menique_1_2
       - jnt_menique_2_3
     command_interfaces:
-      - position  
+      - position
     state_interfaces:
       - position
       - velocity
+    allow_partial_joints_goal: true
+    constraints:
+      goal_time: 5.0
+      stopped_velocity_tolerance: 0.5
+      jnt_pecho_hombro:    {trajectory: 0.5, goal: 0.5}
+      jnt_hombro_hombro:   {trajectory: 0.5, goal: 0.5}
+      jnt_hombro_biceps:   {trajectory: 0.5, goal: 0.5}
+      jnt_biceps_codo:     {trajectory: 0.5, goal: 0.5}
+      jnt_codo_antebrazo:  {trajectory: 0.5, goal: 0.5}
+      jnt_antebrazo_palma: {trajectory: 0.5, goal: 0.5}
+      jnt_palma_pulgar_1:  {trajectory: 0.5, goal: 0.5}
+      jnt_pulgar_1_2:      {trajectory: 0.5, goal: 0.5}
+      jnt_pulgar_2_3:      {trajectory: 0.5, goal: 0.5}
+      jnt_palma_indice_1:  {trajectory: 0.5, goal: 0.5}
+      jnt_indice_1_2:      {trajectory: 0.5, goal: 0.5}
+      jnt_indice_2_3:      {trajectory: 0.5, goal: 0.5}
+      jnt_palma_cordial_1: {trajectory: 0.5, goal: 0.5}
+      jnt_cordial_1_2:     {trajectory: 0.5, goal: 0.5}
+      jnt_cordial_2_3:     {trajectory: 0.5, goal: 0.5}
+      jnt_palma_anular_1:  {trajectory: 0.5, goal: 0.5}
+      jnt_anular_1_2:      {trajectory: 0.5, goal: 0.5}
+      jnt_anular_2_3:      {trajectory: 0.5, goal: 0.5}
+      jnt_palma_menique_1: {trajectory: 0.5, goal: 0.5}
+      jnt_menique_1_2:     {trajectory: 0.5, goal: 0.5}
+      jnt_menique_2_3:     {trajectory: 0.5, goal: 0.5}

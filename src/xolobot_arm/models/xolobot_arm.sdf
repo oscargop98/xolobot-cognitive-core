@@ -2831,15 +2831,13 @@
   <parameters>$(find xolobot_control)/config/xolobot_control.yaml</parameters>
 </plugin>
 
-<!-- DetachableJoint DESACTIVADO — disparo fantasma en t=0 por mensaje Empty del bridge
 <plugin filename="gz-sim-detachable-joint-system" name="gz::sim::systems::DetachableJoint">
   <parent_link>link_palma_izq</parent_link>
   <child_model>objeto</child_model>
   <child_link>link</child_link>
-  <detach_topic>/xolobot_arm/detach</detach_topic>
-  <attach_topic>/xolobot_arm/attach</attach_topic>
+  <detach_topic>/xolobot_arm/magnet_off</detach_topic>
+  <attach_topic>/xolobot_arm/magnet_on</attach_topic>
 </plugin>
--->
 <!-- <plugin name="GazeboLinkAttacher" filename="libgazebo_link_attacher.so" />-->
 
 </model>

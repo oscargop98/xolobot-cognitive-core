@@ -6,14 +6,14 @@
 
     <link name='link'>
       <inertial>
-        <mass>0.4</mass>
+        <mass>2.0</mass>
         <inertia>
-          <ixx>0.000577</ixx>
+          <ixx>0.003</ixx>
           <ixy>0</ixy>
           <ixz>0</ixz>
-          <iyy>0.000577</iyy>
+          <iyy>0.003</iyy>
           <iyz>0</iyz>
-          <izz>0.000218</izz>
+          <izz>0.001</izz>
         </inertia>
       </inertial>
 

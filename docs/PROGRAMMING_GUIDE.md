@@ -20,16 +20,16 @@ Documento para quien quiera modificar, extender o depurar el sistema — no solo
        └── SimulationController inicia su timer (cada 2.5s)
 
 [Ciclo de control — SimulationController]
-  t=0–15s   warm-up: 6 ticks sin hacer nada (espera estabilización del reloj)
-  t=15s     Corteza Premotora: publica trayectoria de 2 puntos al JTC
-                punto 1 (t+2.5s): waypoint alto — codo elevado sobre el pedestal
-                punto 2 (t+5s):   pose de agarre — brazo desciende sobre la lata
-  t=20s     JTC ejecuta la trayectoria articulación por articulación
-  t=20.3s   Bumper de palma o dedo detecta contacto con la lata
+  t=0–10s   warm-up: 4 ticks sin hacer nada (espera estabilización del reloj)
+  t=10s     Corteza Premotora: publica trayectoria de 2 puntos al JTC
+                punto 1 (t+1.5s): waypoint alto — codo elevado sobre el pedestal
+                punto 2 (t+3.0s): pose de agarre — brazo desciende sobre la lata
+  t=13s     JTC ejecuta la trayectoria articulación por articulación
+  t=13.5s   Bumper de palma o dedo detecta contacto con la lata
                 → colisionDetectada = true
                 → se cierra la mano (trayectoria de dedos)
                 → se activa el imán magnético (gz topic magnet_on)
-  t=28s     Timer de elevación: Corteza Premotora publica pose de elevación
+  t=18s     Timer de elevación: Corteza Premotora publica pose de elevación
                 → el brazo sube con la lata sujeta
 ```
 
@@ -279,13 +279,14 @@ Reemplaza ambos bloques `<geometry>` (el de `<collision>` y el de `<visual>`):
 </cylinder>
 ```
 
-Actualiza también la inercia en `<inertial>` para que la física sea correcta:
+Actualiza también la inercia en `<inertial>`. La masa usada es 2.0kg (no la real de ~0.4kg) para evitar que el cilindro ruede sobre el soporte plano:
 
 ```xml
-<!-- Para cilindro m=0.4kg, r=0.033m, h=0.122m -->
-<ixx>0.000577</ixx>
-<iyy>0.000577</iyy>
-<izz>0.000218</izz>
+<!-- Cilindro m=2.0kg (estabilidad), r=0.033m, h=0.122m -->
+<mass>2.0</mass>
+<ixx>0.003</ixx>
+<iyy>0.003</iyy>
+<izz>0.001</izz>
 ```
 
 **Nota sobre el agarre:** el cilindro tiene 6.6 cm de diámetro vs. los 5 cm de la caja anterior. Los dedos necesitan abrirse ligeramente más. Usa `xolo_jtc` para recalibrar la apertura de los dedos en la pose de agarre.

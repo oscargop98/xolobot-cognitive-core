@@ -69,14 +69,6 @@
       <shadows>1</shadows>
     </scene>
 
-    <gui fullscreen="0">
-      <camera name="user_camera">
-        <pose>-0.460154 1.6647 0.942368 0 0.227643 -0.747814</pose>
-        <view_controller>orbit</view_controller>
-        <projection_type>perspective</projection_type>
-      </camera>
-    </gui>
-  
     <plugin filename="gz-sim-physics-system" name="gz::sim::systems::Physics" />
     <plugin filename="gz-sim-user-commands-system" name="gz::sim::systems::UserCommands" />
     <plugin filename="gz-sim-scene-broadcaster-system" name="gz::sim::systems::SceneBroadcaster" />

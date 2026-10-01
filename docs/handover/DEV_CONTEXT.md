@@ -1,6 +1,6 @@
 # DEV_CONTEXT.md — Xolobot Cognitive Core
 **Documento técnico de contexto y traspaso del proyecto**
-Última actualización: 2026-09-24
+Última actualización: 2026-10-01
 
 ---
 
@@ -78,12 +78,12 @@ SimulationController.cpp  [xolobot_arm_server/src/]
 **El control está en C++, NO en Python.** Archivo principal: `src/xolobot_arm_server/src/SimulationController.cpp`.
 
 Máquina de estados:
-1. **Warm-up** — espera 6 ticks del timer (~15s) para que `/clock` fluya desde Gazebo
-2. **Planificación** — genera trayectoria de 2 puntos: waypoint alto (t=2.5s) + pose final (t=5s)
+1. **Warm-up** — espera 4 ticks del timer (~10s) para que `/clock` fluya desde Gazebo
+2. **Planificación** — genera trayectoria de 2 puntos: waypoint alto (t=1.5s) + pose final (t=3s)
 3. **Ejecución** — JTC interpola las 21 articulaciones
 4. **Contacto** — bumper detecta colisión palma/dedo con el objeto
 5. **Agarre** — cierra dedos + publica `attach_pub_` → `/xolobot_arm/attach` (actualmente sin efecto real: el plugin `DetachableJoint` está desactivado, ver "Bugs ya resueltos")
-6. **Elevación** — `moverHombro()` publica trayectoria de elevación suave (5s)
+6. **Elevación** — `moverHombro()` publica trayectoria de elevación suave; timer de 5s
 
 Flags estáticos importantes:
 ```cpp
@@ -105,7 +105,7 @@ El proyecto usa **Gazebo Harmonic (gz-sim8)**. Comandos de Gazebo Classic (`gzse
 
 - **Mundo:** `src/xolobot_arm/worlds/coca_levitando.world`
 - **Pedestal/soporte:** `soporte.sdf` — mesa estática en X: 0.2709, Y: 0.2567
-- **Lata:** `objeto.sdf` (coke_can) — posicionada sobre el pedestal
+- **Lata:** `objeto.sdf` (coke_can) — geometría **cilindro** (radio=0.033m, largo=0.122m, masa=2.0kg), posicionada sobre el pedestal. Nota: la masa elevada (2.0kg vs real ~0.4kg) es intencional para evitar que el cilindro ruede en la superficie plana del soporte.
 
 ### Cámara
 
@@ -158,10 +158,14 @@ El proyecto usa **Gazebo Harmonic (gz-sim8)**. Comandos de Gazebo Classic (`gzse
 
 ### Bugs ya resueltos — no reabrir
 
-- **Phantom Empty del bridge → plugin `DetachableJoint` desactivado:** al iniciar, el bridge disparaba un `Empty` fantasma en `/xolobot_arm/attach` que provocaba un acople/desacople falso en t=0. **Solución realmente aplicada:** el bloque completo `<plugin name="gz::sim::systems::DetachableJoint">` quedó **comentado** en `src/xolobot_arm/models/xolobot_arm.sdf` (no se carga en Gazebo). El nodo C++ conserva únicamente `attach_pub_` (publica `Empty` en `/xolobot_arm/attach`, bridgeado en el `launch.py`); no existe ningún tópico `detach`/`magnet_off` ni ninguna llamada `system("gz topic ...")` en el código actual. **Reactivar el plugin (SDF + bridge) sigue pendiente — no está resuelto, solo desactivado.**
+- **Phantom Empty del bridge → plugin `DetachableJoint` desactivado; agarre vía `gz topic`:** al iniciar, el bridge disparaba un `Empty` fantasma que provocaba un acople/desacople falso en t=0. **Solución aplicada (2026-10-01):** el bloque `DetachableJoint` quedó **comentado** en `xolobot_arm.sdf` y el agarre se reemplazó por llamadas directas vía `system()`:
+  - Constructor: `create_wall_timer(3s)` → `system("gz topic -t /xolobot_arm/magnet_off ...")` (suelta cualquier objeto adherido al inicio)
+  - `agarre_objeto()`: `system("gz topic -t /xolobot_arm/magnet_on ...")` (activa el imán al detectar contacto)
+  - El tópico `/xolobot_arm/attach` y `attach_pub_` fueron eliminados del código.
+  - **Nota:** el tópico `magnet_on`/`magnet_off` en Gazebo Harmonic requiere un plugin adicional en el SDF. Si no está configurado, `system("gz topic ...")` no produce efecto real. El agarre es funcional por la pose cinemática; la sujeción magnética es trabajo pendiente.
 - **Constructor bloqueante:** `sleep_for()` en el constructor bloqueaba `spin()` y `/clock` nunca llegaba. Solución: `create_wall_timer` con lambda de un solo disparo.
 - **Antebrazo en filtro de colisión:** el filtro incluía `link_antebrazo_izq` que generaba falsos positivos. Solución: filtro estricto — solo palma y las 5 yemas de los dedos.
-- **Arc interpolation + pedestal:** JTC interpola en curva cúbica causando que el antebrazo choque con el pedestal. Solución definitiva: trayectoria de 2 puntos (waypoint alto en t=2.5s, descenso en t=5.0s).
+- **Arc interpolation + pedestal:** JTC interpola en curva cúbica causando que el antebrazo choque con el pedestal. Solución definitiva: trayectoria de 2 puntos (waypoint alto en t=1.5s, descenso en t=3.0s).
 
 ### Instalación de Jazzy — apt obligatorio (NO compilar desde fuente)
 
@@ -232,19 +236,28 @@ Sin Co-Authored-By en commits. La autoría es exclusivamente del usuario.
 
 ---
 
-## 6. Punto de Partida — Última Sesión (2026-09-24)
+## 6. Punto de Partida — Historial de sesiones
 
-### Lo que se hizo en esta sesión
+### Sesión 2026-09-24 (reorganización y puesta en marcha)
 
 1. **Reorganización del repositorio:** se creó `xolobot-cognitive-core` en GitHub, se renombró la rama a `main`, y se copió el código desde `mi-brazo-robot-ros2-iron`. La carpeta vieja recibió `COLCON_IGNORE` y fue desconectada del remote.
+2. **Limpieza y rebuild limpio:** se eliminaron `build/`, `install/`, `log/` y se recompiló en limpio. Los 3 paquetes compilaron sin errores.
+3. **README.md reestructurado:** alias, instrucciones de instalación, opciones de ejecución (nativa + Docker).
+4. **Reporte de servicio social Trimestre 1:** `docs/Trimestre 26-P Reporte.md` commiteado (Meses 1–3).
+5. **Auditoría de infraestructura:** workspace saneado, sin contaminación de entorno Iron.
 
-2. **Limpieza y rebuild limpio:** se eliminaron `build/`, `install/`, `log/` (que tenían 126+ referencias a paths obsoletos) y se recompiló en limpio. Los 3 paquetes compilaron sin errores.
+### Sesión 2026-10-01 (forma del objeto, timing, documentación)
 
-3. **README.md reestructurado:** el archivo limpio con alias, instrucciones de instalación y opciones de ejecución (nativa + Docker) fue commiteado al repo.
-
-4. **Reporte de servicio social:** `docs/Trimestre 26-P Reporte.md` fue generado y commiteado. Cubre los Meses 1–3 del programa, mapeando el trabajo técnico a los módulos cognitivos del proyecto.
-
-5. **Auditoría de infraestructura completada:** workspace saneado, sin contaminación de entorno Iron, sin paths obsoletos en el caché de compilación.
+1. **`objeto.sdf` → cilindro:** la lata cambió de `<box>` a `<cylinder>` con dimensiones reales de lata de refresco (radio=0.033m, largo=0.122m). La masa quedó en 2.0kg para estabilidad física sobre el soporte plano.
+2. **Optimización de timing en `SimulationController.cpp`:**
+   - Warm-up: 6 ticks → 4 ticks (~10s)
+   - Waypoint: t=2.5s → t=1.5s
+   - Pose final: t=5s → t=3s
+   - Timer de elevación: 8s → 5s (tanto en `deteccionColision` como en `deteccionColisionPalma`)
+3. **`AI_CONTEXT.md` renombrado a `DEV_CONTEXT.md`** — sin lenguaje relacionado con IA.
+4. **`docs/PROGRAMMING_GUIDE.md` creado** — manual técnico completo para quien quiera extender el sistema: ciclo de simulación, mapa de archivos, recetas SDF, guía de modificación de `SimulationController.cpp`, cómo agregar sensores, reglas no negociables.
+5. **README.md actualizado:** flujo de actualización del workspace (Sección 7), recomendación de 300 GB de almacenamiento con desglose por capa, guía de código, advertencia Docker como caso especial.
+6. **Reporte Trimestre 2:** `docs/Trimestre 26-P Reporte 2.md` commiteado (Meses 4–6, julio–septiembre 2026).
 
 ### Estado actual del sistema
 
@@ -256,18 +269,26 @@ Sin Co-Authored-By en commits. La autoría es exclusivamente del usuario.
 ~/migration_ws/src/xolobot-cognitive-core/
   git branch → main
   git remote → https://github.com/oscargop98/xolobot-cognitive-core.git
-  último commit → 3446653 "docs: agregar enlaces a bitacoras de investigacion"
+  commits pendientes de push: 7ac7144, 9f5cb09, 357f7b8 (documentación oct-2026)
 
 ~/migration_ws/src/mi-brazo-robot-ros2-iron/
   COLCON_IGNORE → presente
   git remote → eliminado (desconectado de GitHub)
 ```
 
+> **Nota:** después de aplicar los cambios de timing y geometría, se requiere:
+> ```bash
+> cd ~/migration_ws
+> colcon build --packages-select xolobot_arm xolobot_arm_server
+> source install/setup.bash
+> ```
+
 ### Por dónde continuar
 
 El sistema de agarre es funcional. Las siguientes líneas de trabajo posibles son:
 
-- **Calibración cinemática adicional:** el offset de 0.758 rad en `jnt_hombro_hombro` puede requerir ajuste fino según la posición exacta del objeto en el mundo.
+- **Documentación de referencia:** `docs/PROGRAMMING_GUIDE.md` explica el ciclo completo, recetas de modificación y reglas a no romper — leerlo antes de modificar el código.
+- **Calibración post-cilindro:** el cilindro tiene 6.6 cm de diámetro (vs. 5 cm de la caja anterior). Los dedos pueden necesitar recalibración de apertura. Usar `xolo_jtc` (Teach Pendant) para ajustar los valores de `point.positions` en `generaAleatorios()`.
 - **Integración de módulos cognitivos superiores:** el proyecto espera la implementación de Corteza Prefrontal (planificación de secuencias) e Hipocampo (memoria episódica) como nodos ROS 2 adicionales que se conecten al `SimulationController`.
-- **Pruebas de Docker en más equipos:** los parches de VM (`~/.Xauthority`, `ROS_LOCALHOST_ONLY=1`, `ipc: host`) están documentados en `DOCKER.md` pero no han sido probados en equipos del laboratorio distintos al de Oscar.
+- **Reactivar `DetachableJoint`:** el plugin magnético está desactivado (comentado en el SDF). El nodo publica el tópico `/xolobot_arm/attach` pero no tiene efecto real. Reactivar requiere descomentar el bloque del plugin en `xolobot_arm.sdf` y agregar el tópico en el bridge.
 - **Bitácoras:** revisar `src/xolobot-cognitive-core/Bitacora/` para contexto de decisiones técnicas anteriores antes de modificar timing, trayectorias o configuración del bridge.

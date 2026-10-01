@@ -4,7 +4,6 @@
 #include <rclcpp/rclcpp.hpp>
 #include "std_msgs/msg/float64.hpp"
 #include "ros_gz_interfaces/msg/contacts.hpp"
-#include "std_msgs/msg/empty.hpp"
 #include <string>
 #include <vector>
 #include <utility>
@@ -38,14 +37,13 @@ private:
 
     double bicepMov = 0.0;
     bool colisionDetectada = false;
+    bool levantando = false;
     rclcpp::TimerBase::SharedPtr timer_;
 
     // Publicador para la trayectoria completa
     rclcpp::Publisher<trajectory_msgs::msg::JointTrajectory>::SharedPtr jointTrajectoryPub;
     // Publicador para el controlador de esfuerzo
     rclcpp::Publisher<std_msgs::msg::Float64>::SharedPtr jointEffortPub;
-    
-    rclcpp::Publisher<std_msgs::msg::Empty>::SharedPtr attach_pub_;
     
     rclcpp::Subscription<ros_gz_interfaces::msg::Contacts>::SharedPtr suscriptorPalma;
     rclcpp::Subscription<ros_gz_interfaces::msg::Contacts>::SharedPtr suscriptorAntebrazo;
@@ -57,6 +55,7 @@ private:
     rclcpp::Subscription<ros_gz_interfaces::msg::Contacts>::SharedPtr suscriptorMenique;
    
     rclcpp::TimerBase::SharedPtr temporizadorHombro;
+    rclcpp::TimerBase::SharedPtr magnet_off_timer_;
 
     void deteccionColision(const ros_gz_interfaces::msg::Contacts::SharedPtr msg);
     void deteccionColisionPalma(const ros_gz_interfaces::msg::Contacts::SharedPtr msg);

@@ -1,0 +1,50 @@
+# ros_gz_bridge config — mapeo explícito de tópicos de Gazebo Harmonic a ROS 2
+# Formato: gz_topic_name → ros_topic_name con tipos correctos
+
+- ros_topic_name: /clock
+  gz_topic_name: /clock
+  ros_type_name: rosgraph_msgs/msg/Clock
+  gz_type_name: gz.msgs.Clock
+  direction: GZ_TO_ROS
+
+- ros_topic_name: /bumper_states_antebrazo
+  gz_topic_name: /world/default/model/xolobot_arm/link/link_antebrazo_izq/sensor/antebrazo_sensor/contact
+  ros_type_name: ros_gz_interfaces/msg/Contacts
+  gz_type_name: gz.msgs.Contacts
+  direction: GZ_TO_ROS
+
+- ros_topic_name: /bumper_states_palma
+  gz_topic_name: /world/default/model/xolobot_arm/link/link_palma_izq/sensor/palma_sensor/contact
+  ros_type_name: ros_gz_interfaces/msg/Contacts
+  gz_type_name: gz.msgs.Contacts
+  direction: GZ_TO_ROS
+
+- ros_topic_name: /bumper_states_pulgar_3
+  gz_topic_name: /world/default/model/xolobot_arm/link/link_pulgar_3_izq/sensor/pulgar_3_sensor/contact
+  ros_type_name: ros_gz_interfaces/msg/Contacts
+  gz_type_name: gz.msgs.Contacts
+  direction: GZ_TO_ROS
+
+- ros_topic_name: /bumper_states_indice_3
+  gz_topic_name: /world/default/model/xolobot_arm/link/link_indice_3_izq/sensor/indice_3_sensor/contact
+  ros_type_name: ros_gz_interfaces/msg/Contacts
+  gz_type_name: gz.msgs.Contacts
+  direction: GZ_TO_ROS
+
+- ros_topic_name: /bumper_states_cordial_3
+  gz_topic_name: /world/default/model/xolobot_arm/link/link_cordial_3_izq/sensor/cordial_3_sensor/contact
+  ros_type_name: ros_gz_interfaces/msg/Contacts
+  gz_type_name: gz.msgs.Contacts
+  direction: GZ_TO_ROS
+
+- ros_topic_name: /bumper_states_anular_3
+  gz_topic_name: /world/default/model/xolobot_arm/link/link_anular_3_izq/sensor/anular_3_sensor/contact
+  ros_type_name: ros_gz_interfaces/msg/Contacts
+  gz_type_name: gz.msgs.Contacts
+  direction: GZ_TO_ROS
+
+- ros_topic_name: /bumper_states_menique_3
+  gz_topic_name: /world/default/model/xolobot_arm/link/link_menique_3_izq/sensor/menique_3_sensor/contact
+  ros_type_name: ros_gz_interfaces/msg/Contacts
+  gz_type_name: gz.msgs.Contacts
+  direction: GZ_TO_ROS

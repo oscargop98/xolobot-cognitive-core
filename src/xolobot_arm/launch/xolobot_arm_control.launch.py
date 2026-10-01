@@ -3,17 +3,19 @@ from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
 from launch.actions import ExecuteProcess, IncludeLaunchDescription, SetEnvironmentVariable, AppendEnvironmentVariable
 from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch.substitutions import LaunchConfiguration
+from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
 from launch_ros.actions import Node
 
 def generate_launch_description():
     package_xolobot_arm = get_package_share_directory('xolobot_arm')
     world_path = os.path.join(package_xolobot_arm, "worlds", "coca_levitando.world")
+    gui_config_path = os.path.join(package_xolobot_arm, "config", "view_front.config")
     urdf_path = os.path.join(package_xolobot_arm, "models", "xolobot.urdf")
     sdf_path = os.path.join(package_xolobot_arm, "models", "xolobot_arm.sdf")
     objeto_path = os.path.join(package_xolobot_arm, "models/utileria", "objeto.sdf")
     soporte_path = os.path.join(package_xolobot_arm, "models/utileria", "soporte.sdf")
     yaml_config_path = os.path.join(get_package_share_directory('xolobot_control'), "config", "xolobot_control.yaml")
+    bridge_config_path = os.path.join(package_xolobot_arm, "config", "bridge.yaml")
     #objeto_path2 = os.path.join(package_xolobot_arm, "models/utileria", "objeto2.sdf")
     #soporte_path2 = os.path.join(package_xolobot_arm, "models/utileria", "soporte2.sdf")
 
@@ -24,7 +26,7 @@ def generate_launch_description():
         PythonLaunchDescriptionSource(
             os.path.join(get_package_share_directory('ros_gz_sim'), 'launch', 'gz_sim.launch.py')
         ),
-        launch_arguments={'gz_args': ['-r -v4 ', world_path]}.items()
+        launch_arguments={'gz_args': ['-r -v4 ', world_path, ' --gui-config ', gui_config_path]}.items()
     )
 
     with open(urdf_path, 'r') as urdf_file:
@@ -69,17 +71,7 @@ def generate_launch_description():
     bridge = Node(
         package='ros_gz_bridge',
         executable='parameter_bridge',
-        arguments=[
-            '/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock',
-            '/bumper_states_palma@ros_gz_interfaces/msg/Contacts[gz.msgs.Contacts',
-            '/bumper_states_antebrazo@ros_gz_interfaces/msg/Contacts[gz.msgs.Contacts',
-            '/bumper_states_pulgar_3@ros_gz_interfaces/msg/Contacts[gz.msgs.Contacts',
-            '/bumper_states_indice_3@ros_gz_interfaces/msg/Contacts[gz.msgs.Contacts',
-            '/bumper_states_cordial_3@ros_gz_interfaces/msg/Contacts[gz.msgs.Contacts',
-            '/bumper_states_anular_3@ros_gz_interfaces/msg/Contacts[gz.msgs.Contacts',
-            '/bumper_states_menique_3@ros_gz_interfaces/msg/Contacts[gz.msgs.Contacts',
-            '/xolobot_arm/attach@std_msgs/msg/Empty]gz.msgs.Empty',
-        ],
+        parameters=[{'config_file': bridge_config_path}],
         output='screen'
     )
     
