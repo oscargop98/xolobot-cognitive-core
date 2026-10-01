@@ -74,6 +74,67 @@ bash ~/migration_ws/src/xolobot-cognitive-core/setup_aliases.sh
 source ~/.bashrc
 ```
 
+### 7. Mantener el workspace actualizado
+
+Cuando el repositorio recibe nuevos cambios (código, configuración, modelos SDF), sigue este flujo para actualizar tu instalación local:
+
+```bash
+cd ~/migration_ws/src/xolobot-cognitive-core
+git pull origin main
+```
+
+Si los cambios solo afectan archivos de lanzamiento (`.launch.py`), configuración YAML o documentación, **no es necesario recompilar**. Solo vuelve a sourcear:
+
+```bash
+source ~/migration_ws/install/setup.bash
+```
+
+Si los cambios tocan código C++ (`src/SimulationController.cpp` u otros `.cpp`/`.hpp`) o `CMakeLists.txt`, recompila el paquete afectado:
+
+```bash
+cd ~/migration_ws
+colcon build --packages-select xolobot_arm_server
+source install/setup.bash
+```
+
+> **Importante:** Si después de un `git pull` también ejecutaste `sudo apt upgrade`, realiza un rebuild limpio completo para evitar conflictos de versiones de librerías:
+> ```bash
+> cd ~/migration_ws
+> rm -rf build/ install/ log/
+> colcon build
+> source install/setup.bash
+> ```
+
+---
+
+## 💾 Requerimientos de almacenamiento
+
+El stack tecnológico de este proyecto (ROS 2 + Gazebo Harmonic + Docker) tiene un consumo de disco inherentemente alto. Antes de instalar, verifica que tu partición de Linux cuente con al menos **40 GB libres**.
+
+### Por qué el proyecto ocupa tanto espacio
+
+| Componente | Espacio aproximado | Descripción |
+|---|---|---|
+| ROS 2 Jazzy Desktop (`/opt/ros/jazzy/`) | 3–4 GB | Framework DDS, `rviz2`, `rqt`, herramientas CLI y dependencias |
+| Gazebo Harmonic (`gz-harmonic`) | 4–6 GB | Motor de física (Bullet/DART), renderizado Ogre2, modelos 3D base |
+| Caché de compilación (`build/`) | 1–2 GB | Archivos objeto `.o`, `CMakeCache.txt`, artefactos de Ninja — regenerables |
+| Imágenes Docker (`/var/lib/docker/`) | 8–12 GB por imagen | Contiene todo lo anterior pre-compilado; varias versiones acumulan más |
+| Logs de ejecución (`~/.ros/log/`) | 0.5–2 GB | Crece con cada sesión de trabajo; se puede limpiar con `rm -rf ~/.ros/log/` |
+
+### Recomendaciones
+
+- **Mínimo recomendado para instalación nativa:** 40 GB libres en la partición de Linux.
+- **Mínimo recomendado si también usas Docker:** 60 GB libres.
+- Si tienes una partición Windows o NTFS disponible, puedes montarla como volumen auxiliar para almacenar artefactos o backups sin riesgo:
+  ```bash
+  # Verificar UUID de la partición NTFS
+  sudo blkid /dev/sdXY
+
+  # Montar permanentemente (agregar a /etc/fstab)
+  UUID=<tu-UUID>  /mnt/datos  ntfs-3g  defaults,uid=1000,gid=1000,umask=022,nofail  0  0
+  ```
+- Limpia el caché de compilación cuando termines una sesión de desarrollo intensivo: `rm -rf ~/migration_ws/build/ ~/migration_ws/log/`.
+
 ---
 
 ## 🚀 Ejecución del Proyecto
@@ -113,7 +174,16 @@ xolo_brain
 
 ### Opción B: Ejecución con Docker
 
-Para cualquier equipo que no cuente con ROS 2 Jazzy instalado nativamente. Los contenedores `sim` y `brain` comparten red e IPC para garantizar la comunicación entre el simulador y el nodo cognitivo.
+Diseñada para entornos donde **no es viable o conveniente instalar el stack completo de ROS 2 + Gazebo directamente en el sistema operativo del host**. Casos de uso principales:
+
+- **Servidores de laboratorio compartidos** — donde instalar ROS 2 Jazzy afectaría a otros usuarios o proyectos que usen versiones distintas del framework.
+- **Máquinas con Ubuntu 22.04 u otra versión no compatible** — Docker provee internamente Ubuntu 24.04 sin necesidad de reinstalar el sistema.
+- **Entornos de integración o despliegue remoto** — donde se necesita reproducibilidad exacta del entorno sin depender de la configuración del host.
+- **Desarrollo paralelo de múltiples versiones** — cada contenedor es un entorno aislado; cambiar de versión es tan simple como cambiar la imagen.
+
+> En equipos de desarrollo dedicados con Ubuntu 24.04 (como los de los integrantes del laboratorio), se recomienda la **Opción A (Nativa)** por su rendimiento superior y acceso directo al hardware gráfico. Docker es el complemento ideal para despliegues en infraestructura compartida o remota.
+
+Los contenedores `sim` y `brain` comparten red e IPC para garantizar la comunicación entre el simulador y el nodo cognitivo.
 
 #### Prerrequisito: habilitar el forwarding gráfico (una vez por sesión)
 
