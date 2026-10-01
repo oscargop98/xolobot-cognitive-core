@@ -115,7 +115,7 @@ El proyecto usa **Gazebo Harmonic (gz-sim8)**. Comandos de Gazebo Classic (`gzse
 
 ### Bridge de comunicación
 
-**No existe un `bridge.yaml`.** El bridge (`ros_gz_bridge`/`parameter_bridge`) está definido inline como el nodo `bridge` dentro de `src/xolobot_arm/launch/xolobot_arm_control.launch.py`. Bridgea, con el mismo nombre a ambos lados (Gazebo ↔ ROS 2):
+El bridge (`ros_gz_bridge`/`parameter_bridge`) está definido en **`src/xolobot_arm/config/bridge.yaml`** e importado desde `xolobot_arm_control.launch.py`. Bridgea, con el mismo nombre a ambos lados (Gazebo ↔ ROS 2):
 ```
 /clock                     @ rosgraph_msgs/msg/Clock
 /bumper_states_palma       @ ros_gz_interfaces/msg/Contacts
