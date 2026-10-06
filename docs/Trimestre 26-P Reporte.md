@@ -11,12 +11,14 @@
 Con las firmas que se presentan a continuación, se avala la entrega de este informe trimestral y el cumplimiento satisfactorio de las primeras 240 horas reglamentarias correspondientes a los meses 1, 2 y 3 del proyecto.
 
 <br><br><br>
-_________________________________________  
+
+\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_  
 **Oscar David González Pintor**  
 Prestador de Servicio Social  
 
 <br><br><br>
-_________________________________________  
+
+\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_  
 **Dra. Alicia Montserrat Alvarado González**  
 Responsable del Proyecto
 ---
