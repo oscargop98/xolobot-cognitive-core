@@ -7,7 +7,19 @@
 **Periodo reportado:** 1 de abril de 2026 — 30 de junio de 2026 (Meses 1, 2 y 3)
 
 ---
+### Acreditación de la Primera Mitad del Servicio Social (240 horas)
+Con las firmas que se presentan a continuación, se avala la entrega de este informe trimestral y el cumplimiento satisfactorio de las primeras 240 horas reglamentarias correspondientes a los meses 1, 2 y 3 del proyecto.
 
+<br><br><br>
+_________________________________________  
+**Oscar David González Pintor**  
+Prestador de Servicio Social  
+
+<br><br><br>
+_________________________________________  
+**Dra. Alicia Montserrat Alvarado González**  
+Responsable del Proyecto
+---
 # Introducción
 
 El presente reporte trimestral documenta las actividades realizadas durante los primeros tres meses del servicio social, inscrito bajo el programa **Apoyo para implementar la Arquitectura Cognitiva Inspirada en Neuronas Espejo**. Este proyecto busca dotar a un brazo robótico simulado de una arquitectura de cómputo inspirada en los principios neurocognitivos de las neuronas espejo: regiones corticales especializadas que se activan tanto al ejecutar una acción motora como al observar a otro agente ejecutarla, estableciendo la base neurológica de la imitación, el aprendizaje y la predicción motora.
