@@ -8,6 +8,23 @@
 
 ---
 
+### Acreditación de la Segunda Mitad del Servicio Social (240 horas restantes)
+Con las firmas que se presentan a continuación, se avala la entrega de este segundo informe trimestral y el cumplimiento satisfactorio de las 240 horas finales, cubriendo con ello el total de las 480 horas reglamentarias del proyecto.
+
+<br><br><br>
+
+\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_  
+**Oscar David González Pintor**  
+Prestador de Servicio Social  
+
+<br><br><br>
+
+\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_  
+**Dra. Alicia Montserrat Alvarado González**  
+Responsable del Proyecto  
+
+---
+
 # Introducción
 
 El presente reporte trimestral documenta las actividades realizadas durante los meses cuatro, cinco y seis del servicio social, inscrito bajo el programa **Apoyo para implementar la Arquitectura Cognitiva Inspirada en Neuronas Espejo**. Durante este periodo, el trabajo se desplazó de la implementación inicial de los módulos cognitivos —completada en el trimestre anterior— hacia su **validación, consolidación y transferencia**.
