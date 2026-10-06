@@ -21,6 +21,7 @@ Prestador de Servicio Social
 \_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_\_  
 **Dra. Alicia Montserrat Alvarado González**  
 Responsable del Proyecto
+
 ---
 # Introducción
 
