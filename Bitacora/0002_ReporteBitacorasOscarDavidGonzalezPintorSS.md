@@ -66,7 +66,7 @@ git push origin jazzy-migration
 
 ---
 
-## 4. Resumen de Contexto para la IA (Context Restoration)
+## 4. Resumen de Contexto (Context Restoration)
 
 **Estado Técnico Ultracompacto:**
 - **Nivel Arquitectura:** Migración de ROS 2 Iron a Jazzy completada orgánicamente.
