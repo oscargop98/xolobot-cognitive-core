@@ -210,7 +210,7 @@ Se habilitó una laptop denominada `ss-neuro` como equipo de prueba independient
 - Hardware con recursos moderados (CPU de generación anterior, RAM limitada).
 - Sin historial de ROS 2 en el sistema.
 
-[Insertar imagen: Laptop ss-neuro durante la instalación de Ubuntu 24.04 — equipo de prueba sin configuración previa]
+![Laptop ss-neuro durante la instalación de Ubuntu 24.04](../Bitacora/assets/Prueaba_01.png)
 
 #### Instalación de ROS 2 Jazzy Jalisco
 
@@ -255,7 +255,7 @@ colcon build
 
 La compilación tomó entre **2 y 3 horas**, manteniendo todos los núcleos de la CPU a su máxima capacidad de forma sostenida. Este comportamiento es esperado y no indica un error: el ecosistema ROS 2 Jazzy con Gazebo Harmonic requiere compilar cientos de unidades de traducción con dependencias encadenadas.
 
-[Insertar imagen: Monitor del sistema mostrando CPU al 100% durante colcon build en ss-neuro — prueba de estrés de 2-3 horas]
+![CPU al 100% durante colcon build en ss-neuro](../Bitacora/assets/Prueba_02.png)
 
 #### Validación final — Gazebo Harmonic en ejecución
 
@@ -277,9 +277,9 @@ xolo_brain
 
 **Resultado:** Gazebo Harmonic renderizó el brazo robótico Xolobot, el pedestal y la lata sin errores. El nodo `SimulationController` se sincronizó con el tiempo de simulación y completó la secuencia de agarre autónomo.
 
-[Insertar imagen: Clonación del repositorio xolobot-cognitive-core en ss-neuro — terminal mostrando git clone exitoso]
+![git clone del repositorio en ss-neuro](../Bitacora/assets/Instalacion_05.png)
 
-[Insertar imagen: Gazebo Harmonic ejecutándose en ss-neuro — brazo Xolobot y lata renderizados correctamente]
+![Gazebo Harmonic ejecutándose en ss-neuro con el brazo Xolobot](../Bitacora/assets/Instalacion_07.png)
 
 **Conclusión del Acid Test:** El entorno es **reproducible**. Un usuario nuevo, partiendo de Ubuntu 24.04 limpio y siguiendo la documentación del repositorio, llega a tener el sistema corriendo sin necesidad de asistencia del desarrollador original.
 
