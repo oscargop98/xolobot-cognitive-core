@@ -27,7 +27,7 @@ Responsable del Proyecto
 
 El presente reporte trimestral documenta las actividades realizadas durante los primeros tres meses del servicio social, inscrito bajo el programa **Apoyo para implementar la Arquitectura Cognitiva Inspirada en Neuronas Espejo**. Este proyecto busca dotar a un brazo robótico simulado de una arquitectura de cómputo inspirada en los principios neurocognitivos de las neuronas espejo: regiones corticales especializadas que se activan tanto al ejecutar una acción motora como al observar a otro agente ejecutarla, estableciendo la base neurológica de la imitación, el aprendizaje y la predicción motora.
 
-El sustrato físico de la arquitectura es el brazo robótico antropomórfico **Xolobot**, un manipulador de 21 grados de libertad con una mano de cinco dedos. El trabajo de este trimestre se centró en migrar y modernizar el entorno de simulación del Xolobot — necesario para que las cortezas cognitivas pudieran ejecutarse de forma reproducible — y en implementar los módulos computacionales que corresponden a la **Corteza Premotora**, la **Corteza Motora Primaria**, las **Cortezas Somatosensorial y Parietal**, y los primeros pasos hacia la integración del brazo y el robot simulados en un mismo espacio computacional.
+El sustrato físico de la arquitectura es el brazo robótico antropomórfico **Xolobot**, un manipulador de 21 grados de libertad con una mano de cinco dedos. El trabajo de este trimestre se centró en migrar y modernizar el entorno de simulación del Xolobot — necesario para que las cortezas cognitivas pudieran ejecutarse de forma reproducible — y en adaptar y reconfigurar los módulos computacionales que corresponden a la **Corteza Premotora**, la **Corteza Motora Primaria**, las **Cortezas Somatosensorial y Parietal**, y los primeros pasos hacia la integración del brazo y el robot simulados en un mismo espacio computacional.
 
 ## Antecedentes
 
@@ -39,10 +39,10 @@ Adicionalmente, existía un referente de la arquitectura cognitiva en el proyect
 
 # Objetivo
 
-Apoyar la implementación de la Arquitectura Cognitiva Inspirada en Neuronas Espejo para el robot Xolobot, mediante:
+Apoyar la adaptación e integración de la Arquitectura Cognitiva Inspirada en Neuronas Espejo para el robot Xolobot, mediante:
 
 1. La migración del entorno de simulación de ROS 2 Iron con Gazebo Clásico a **ROS 2 Jazzy Jalisco con Gazebo Harmonic**, garantizando su reproducibilidad mediante una imagen Docker pre-compilada de cinco capas.
-2. El desarrollo del **nodo de Corteza Premotora** (`SimulationController`) en C++, capaz de generar trayectorias articulares reactivas y enviar su resultado a la memoria procedural del robot simulado.
+2. La adaptación del **nodo de Corteza Premotora** (`SimulationController`) en C++ para generar trayectorias articulares reactivas en el entorno migrado, mediante la calibración cinemática e inserción de waypoints de seguridad.
 3. La adaptación de las **Cortezas Somatosensorial y Parietal** al robot simulado, materializada en la configuración de siete sensores de contacto (bumpers) en Gazebo y su integración a través del bridge de comunicación.
 4. La configuración de la **Corteza Motora Primaria** mediante el `JointTrajectoryController` de `ros2_control`, que traduce las órdenes del nodo cognitivo en movimiento articular ejecutado por el simulador.
 5. La integración del brazo y el robot simulados en el **mismo espacio computacional**, conectando los contenedores `sim` (Gazebo) y `brain` (nodo cognitivo) a través de una red compartida y memoria IPC común.
@@ -98,7 +98,7 @@ La imagen Docker pre-compilada garantiza que cualquier nodo cognitivo futuro (Co
 
 # Inicio
 
-Al comenzar el trimestre se verificó que el entorno preexistente de ROS 2 Iron era funcional en el equipo original pero no portable. Se estableció como primer hito la obtención de un entorno Docker completamente operativo antes de proceder con la implementación de los módulos cognitivos.
+Al comenzar el trimestre se verificó que el entorno preexistente de ROS 2 Iron era funcional en el equipo original pero no portable. Se estableció como primer hito la obtención de un entorno Docker completamente operativo antes de proceder con la adaptación de los módulos cognitivos al nuevo ecosistema.
 
 ---
 
@@ -216,7 +216,7 @@ echo "[xolobot] Aliases inyectados. Ejecuta: source ~/.bashrc"
 
 ### Antecedente: Proyecto Robotic-Swarms — Referencia de la Corteza Premotora
 
-Como primera actividad formal dentro del Mes 1 del calendario oficial (*"Apoyo en la implementación del nodo Corteza Premotora"*), se estudió y ejecutó el proyecto **Robotic-Swarms**, que implementa una arquitectura cognitiva completa sobre ROS 2 para robótica de enjambre. Su paquete `cognitive_architecture` contiene nodos de planificación de acción que replican el comportamiento de la Corteza Premotora en un contexto de múltiples robots, y constituyó el **referente directo** del módulo que se implementaría para el Xolobot en la Semana 10.
+Como primera actividad formal dentro del Mes 1 del calendario oficial (*"Apoyo en la implementación del nodo Corteza Premotora"*), se estudió y ejecutó el proyecto **Robotic-Swarms**, que implementa una arquitectura cognitiva completa sobre ROS 2 para robótica de enjambre. Su paquete `cognitive_architecture` contiene nodos de planificación de acción que replican el comportamiento de la Corteza Premotora en un contexto de múltiples robots, y constituyó el **referente directo** del módulo que se adaptaría para el Xolobot en la Semana 10.
 
 El proceso documentado para ejecutar Robotic-Swarms bajo ROS 2 Foxy es el siguiente:
 
@@ -411,7 +411,7 @@ ros2 control list_controllers
 
 Correspondiente a la actividad del Mes 2: *"Apoyo para adaptar lo que ya se tiene de las cortezas Parietal, Somatosensorial, motora primaria al robot simulado"*.
 
-En la arquitectura cognitiva, la **Corteza Somatosensorial** procesa la información táctil del cuerpo, mientras que la **Corteza Parietal** integra esa información para construir un modelo espacial de la interacción con el entorno. Para el Xolobot simulado, estos módulos se implementan como **siete sensores de contacto (bumpers)** distribuidos en la mano y el antebrazo, cuyas señales fluyen hacia el nodo de Corteza Premotora.
+En la arquitectura cognitiva, la **Corteza Somatosensorial** procesa la información táctil del cuerpo, mientras que la **Corteza Parietal** integra esa información para construir un modelo espacial de la interacción con el entorno. Para el Xolobot simulado, estos módulos se materializan como **siete sensores de contacto (bumpers)** distribuidos en la mano y el antebrazo, cuyas señales fluyen hacia el nodo de Corteza Premotora.
 
 #### Migración de Gazebo Clásico a Gazebo Harmonic — Cambio en rutas de tópicos
 
@@ -556,11 +556,11 @@ services:
 
 ## Semana 10
 
-### Corteza Premotora — Implementación del nodo SimulationController
+### Corteza Premotora — Adaptación del nodo SimulationController
 
 Correspondiente a la actividad de los Meses 1 y 2: *"Apoyo en la implementación del nodo Corteza Premotora y enviar a la memoria procedural: robot simulado"*.
 
-La **Corteza Premotora** es la región cortical responsable de la planificación y selección de acciones motoras complejas antes de que sean ejecutadas. En sistemas con neuronas espejo, esta región se activa tanto al planificar una acción propia como al observar a otro agente ejecutarla — siendo la base computacional de la imitación y el aprendizaje por observación. Para el Xolobot, la Corteza Premotora se implementa como el nodo C++ `SimulationController`: recibe señales de la Corteza Somatosensorial (tópicos de bumpers), planifica una secuencia de acciones (aproximación, agarre, elevación) y envía el plan resultante a la Corteza Motora Primaria (JTC) para su ejecución. El estado final del brazo tras el agarre constituye la salida dirigida a la **memoria procedural** del robot simulado.
+La **Corteza Premotora** es la región cortical responsable de la planificación y selección de acciones motoras complejas antes de que sean ejecutadas. En sistemas con neuronas espejo, esta región se activa tanto al planificar una acción propia como al observar a otro agente ejecutarla — siendo la base computacional de la imitación y el aprendizaje por observación. Para el Xolobot, la Corteza Premotora se representa como el nodo C++ `SimulationController`: recibe señales de la Corteza Somatosensorial (tópicos de bumpers), planifica una secuencia de acciones (aproximación, agarre, elevación) y envía el plan resultante a la Corteza Motora Primaria (JTC) para su ejecución. El estado final del brazo tras el agarre constituye la salida dirigida a la **memoria procedural** del robot simulado.
 
 #### Arquitectura de la máquina de estados reactiva
 
@@ -881,11 +881,11 @@ void SimulationController::moverHombro(){
 
 Al término del Trimestre 26-P se cumplieron los objetivos establecidos para los **Meses 1, 2 y 3** del calendario oficial. El entorno de simulación del Xolobot fue migrado exitosamente a ROS 2 Jazzy/Gazebo Harmonic y encapsulado en una imagen Docker reproducible.
 
-Los módulos computacionales de la **Arquitectura Cognitiva Inspirada en Neuronas Espejo** implementados en este trimestre son:
+Los módulos computacionales de la **Arquitectura Cognitiva Inspirada en Neuronas Espejo** adaptados y estabilizados en este trimestre son:
 
 | Módulo cognitivo | Implementación técnica | Semana |
 |---|---|---|
-| Corteza Premotora | `SimulationController` C++ — planificación y trayectorias reactivas | 4 (referencia), 10 (implementación) |
+| Corteza Premotora | `SimulationController` C++ — planificación y trayectorias reactivas | 4 (referencia), 10 (adaptación) |
 | Corteza Motora Primaria | `JointTrajectoryController` — ejecución articular en Gazebo | 7 |
 | Corteza Somatosensorial y Parietal | 7 bumpers + bridge YAML — retroalimentación táctil | 8 |
 | Mismo espacio brain+sim | `network_mode: host` + `ipc: host` — coubicación computacional | 9, 11, 12 |
