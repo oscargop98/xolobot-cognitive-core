@@ -31,11 +31,14 @@ services:
       - ROS_DOMAIN_ID=0
       - QT_QPA_PLATFORM=xcb
 
+    # IPC compartido con brain — necesario para que DDS entregue trayectorias al JTC
+    ipc: host
+
     volumes:
       # Socket X11 para ventana de Gazebo en el escritorio del host
       - /tmp/.X11-unix:/tmp/.X11-unix:ro
-      # Cookie de autenticación X11
-      - /run/user/1000/gdm/Xauthority:/root/.Xauthority:ro
+      # Cookie de autenticación X11 — ruta portable (funciona en nativo y VM)
+      - ~/.Xauthority:/root/.Xauthority:ro
 
     devices:
       # GPU via DRI (Mesa/OpenGL — ogre2 de Gazebo)
@@ -58,6 +61,9 @@ services:
     container_name: xolobot_brain
 
     network_mode: host
+
+    # IPC compartido con sim — permite comunicación DDS de alta velocidad vía /dev/shm
+    ipc: host
 
     environment:
       - ROS_DOMAIN_ID=0
